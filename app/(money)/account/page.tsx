@@ -1,21 +1,44 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import useFetchAccount from "@/hooks/use-fetch-account";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store/app.store";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, MoreVertical } from "lucide-react";
 import { useEffect } from "react";
 import numeral from "numeral";
+import { useFetchAccounts } from "@/hooks/use-fetch-accounts";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function Account() {
+  const router = useRouter();
   const { setPageTitle } = useAppStore();
 
-  const accounts = useFetchAccount();
+  const accounts = useFetchAccounts();
 
   useEffect(() => {
     setPageTitle("บัญชี");
   }, [setPageTitle]);
+
+  async function deleteAccount(id: number) {
+    try {
+      toast("กําลังลบบัญชี");
+      await fetch(`${process.env.NEXT_PUBLIC_API}/api/account/${id}`, {
+        method: "DELETE",
+      });
+      accounts.mutate();
+      toast("ลบบัญชีสําเร็จ");
+    } catch (error) {
+      console.error(error);
+      toast("ลบบัญชีไม่สําเร็จ");
+    }
+  }
 
   if (accounts.data) {
     return (
@@ -41,6 +64,23 @@ export default function Account() {
                 className="flex justify-between items-center px-4 py-2 bg-stone-900"
               >
                 <div className="flex items-center gap-3">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger>
+                      <MoreVertical />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem
+                        onClick={() =>
+                          router.push(`/account/update/${list.id}`)
+                        }
+                      >
+                        แก้ไขบัญชี
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => deleteAccount(list.id)}>
+                        ลบบัญชี
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   <Avatar className="w-10 h-10">
                     <AvatarImage src="https://github.com/shadcn.png" />
                     <AvatarFallback></AvatarFallback>
