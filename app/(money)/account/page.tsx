@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store/app.store";
 import { ChevronRight, MoreVertical } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import numeral from "numeral";
 import { useFetchAccounts } from "@/hooks/use-fetch-accounts";
 import {
@@ -15,6 +15,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function Account() {
   const router = useRouter();
@@ -26,12 +36,20 @@ export default function Account() {
     setPageTitle("บัญชี");
   }, [setPageTitle]);
 
-  async function deleteAccount(id: number) {
+  const [showDeleteAccountAlert, setShowDeleteAccountAlert] = useState(false);
+  const [accountIdForDelete, setAccountIdForDelete] = useState<number | null>(
+    null
+  );
+
+  async function deleteAccount() {
     try {
       toast("กําลังลบบัญชี");
-      await fetch(`${process.env.NEXT_PUBLIC_API}/api/account/${id}`, {
-        method: "DELETE",
-      });
+      await fetch(
+        `${process.env.NEXT_PUBLIC_API}/api/account/${accountIdForDelete}`,
+        {
+          method: "DELETE",
+        }
+      );
       accounts.mutate();
       toast("ลบบัญชีสําเร็จ");
     } catch (error) {
@@ -76,7 +94,12 @@ export default function Account() {
                       >
                         แก้ไขบัญชี
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => deleteAccount(list.id)}>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setAccountIdForDelete(list.id);
+                          setShowDeleteAccountAlert(true);
+                        }}
+                      >
                         ลบบัญชี
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -104,6 +127,26 @@ export default function Account() {
             ))}
           </div>
         ))}
+
+        <AlertDialog
+          open={showDeleteAccountAlert}
+          onOpenChange={setShowDeleteAccountAlert}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>ยืนยันการลบ</AlertDialogTitle>
+              <AlertDialogDescription>
+                คุณต้องการลบบัญชีนี้หรือไม่
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
+              <AlertDialogAction onClick={() => deleteAccount()}>
+                ยืนยัน
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     );
   }

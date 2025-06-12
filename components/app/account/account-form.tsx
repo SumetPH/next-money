@@ -64,6 +64,7 @@ type Props = {
 };
 
 export default function AccountForm({ mode, id, defaultValues }: Props) {
+  console.log(defaultValues);
   const masterStore = useMasterStore();
   const router = useRouter();
 
@@ -71,7 +72,7 @@ export default function AccountForm({ mode, id, defaultValues }: Props) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: defaultValues?.title ?? "",
-      type: defaultValues?.type ?? "credit",
+      type: defaultValues?.type ?? "",
       credit_date: defaultValues?.credit_date ?? undefined,
       created_at: defaultValues?.created_at ?? dayjs().toDate(),
       is_hidden: defaultValues?.is_hidden ?? false,
